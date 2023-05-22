@@ -40,6 +40,8 @@ def process(request,queue):
     message_data = {
         "token": str(video.token)
     }
+    is_orchest = data.get("is_orchest", False)
+    message_data["is_orchest"] = is_orchest
     message = json.dumps(message_data)
     rabbitmq(message,queue)
     return str(video.token)

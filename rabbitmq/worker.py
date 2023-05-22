@@ -7,6 +7,7 @@ import sys
 import django
 import subprocess
 import shutil
+import requests
 from dotenv import load_dotenv
 from moviepy.editor import VideoFileClip, concatenate_videoclips
 from django.db.models import F
@@ -26,25 +27,6 @@ def main():
 
     channel.queue_declare(queue='task_acc', durable=True)
     print(' [*] Waiting for messages. To exit press CTRL+C')
-
-    # def concatenate_clip(id, link, timestamp):
-    #     clips = []
-
-    #     for time in timestamp:
-    #         start = time[0]
-    #         end = time[1]
-    #         clip = VideoFileClip(link).subclip(start, end)
-    #         clips.append(clip)
-
-    #     final_clip = concatenate_videoclips(clips)
-
-    #     output_folder = 'video'
-    #     os.makedirs(output_folder, exist_ok=True)
-
-    #     output_path = os.path.join(output_folder, id + ".mp4")
-    #     final_clip.write_videofile(output_path)
-
-    #     return output_path
 
     def callback(ch, method, properties, body):
         message_data = json.loads(body)
@@ -91,6 +73,16 @@ def main():
         video.highlight_link = f"https://lawbagasbucket.s3.amazonaws.com/highlight/{id_video}.mp4"
         video.progress = 100
         video.save()
+
+        if message_data['is_orchest'] == True:
+            service_url = "http://localhost:8000/main/get-update"
+            data = {
+                "token": id_video,
+                "video_url": video.highlight_link,
+                "type": "highlight"
+            }
+            print("dikirim ke orchestra")
+            requests.post(service_url, json=data)
 
         os.remove(file_path)
         ch.basic_ack(delivery_tag=method.delivery_tag)
