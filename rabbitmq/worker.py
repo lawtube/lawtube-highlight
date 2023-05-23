@@ -75,7 +75,8 @@ def main():
         video.save()
 
         if message_data['is_orchest'] == True:
-            service_url = "http://localhost:8000/main/get-update"
+            url = os.getenv("CHOREO_URL")
+            service_url = f"{url}/main/get-update"
             data = {
                 "token": id_video,
                 "video_url": video.highlight_link,
